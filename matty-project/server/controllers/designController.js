@@ -1,5 +1,6 @@
 const Design = require('../models/Design');
 const cloudinary = require('cloudinary').v2;
+const mongoose = require('mongoose'); // Import mongoose for ID validation
 
 // Configure Cloudinary
 cloudinary.config({
@@ -10,7 +11,16 @@ cloudinary.config({
 
 // Create new design
 exports.createDesign = async (req, res) => {
-    const { title, jsonData, thumbnail } = req.body; // thumbnail = base64 or image URL
+    // --- VALIDATION START ---
+    const { title, jsonData, thumbnail } = req.body;
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+        return res.status(400).json({ message: 'Title is required and must be a non-empty string.' });
+    }
+    if (!jsonData || typeof jsonData !== 'object' || Array.isArray(jsonData)) {
+        return res.status(400).json({ message: 'jsonData is required and must be an object.' });
+    }
+    // --- VALIDATION END ---
+
     try {
         let thumbnailUrl = '';
         if (thumbnail) {
@@ -44,8 +54,17 @@ exports.getDesigns = async (req, res) => {
 
 // Update design
 exports.updateDesign = async (req, res) => {
+    // --- VALIDATION START ---
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'The provided ID is not a valid format.' });
+    }
     const { title, jsonData, thumbnail } = req.body;
+    if (Object.keys(req.body).length === 0) {
+        return res.status(400).json({ message: 'Update failed. Request body cannot be empty.' });
+    }
+    // --- VALIDATION END ---
+
     try {
         const design = await Design.findById(id);
         if (!design) return res.status(404).json({ message: 'Design not found' });
@@ -68,14 +87,21 @@ exports.updateDesign = async (req, res) => {
 
 // Delete design
 exports.deleteDesign = async (req, res) => {
+    // --- VALIDATION START ---
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'The provided ID is not a valid format.' });
+    }
+    // --- VALIDATION END ---
+
     try {
         const design = await Design.findById(id);
         if (!design) return res.status(404).json({ message: 'Design not found' });
         if (design.userId.toString() !== req.user.id) return res.status(403).json({ message: 'Unauthorized' });
 
-        await design.remove();
-        res.status(200).json({ message: 'Design deleted' });
+        const deletedDesign = await Design.findByIdAndDelete(id);
+
+        res.status(200).json({ message: 'Design deleted', deletedDesign: deletedDesign });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
