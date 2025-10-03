@@ -87,7 +87,7 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">Matty</h1>
+          <h1 className="text-5xl font-bold text-white mb-2" style={{ fontFamily: '"Kablammo", system-ui' }}>Matty</h1>
           <p className="text-white/90 text-lg">Online Graphic Design Tool</p>
         </div>
 
