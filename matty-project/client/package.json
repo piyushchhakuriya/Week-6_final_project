@@ -2,6 +2,7 @@
   "name": "matty-frontend",
   "version": "1.0.0",
   "private": true,
+  "proxy": "http://localhost:5000",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -10,11 +11,12 @@
   },
   "dependencies": {
     "axios": "^1.5.0",
+    "fabric": "^6.7.1",
     "framer-motion": "^10.12.16",
     "lucide-react": "^0.544.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-konva": "^18.0.4",
+    "react-konva": "^18.2.14",
     "react-router-dom": "^6.17.0",
     "use-image": "^1.0.1"
   },
