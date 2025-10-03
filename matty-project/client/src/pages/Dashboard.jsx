@@ -67,7 +67,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="flex justify-between items-center px-8 py-4 bg-white shadow">
+      <header className="flex justify-between items-center px-8 py-4">
         <div className="text-5xl font-extrabold text-black-700 cursor-pointer" onClick={() => navigate('/')} style={{ fontFamily: '"Kablammo", system-ui' }}>
           Matty
         </div>
