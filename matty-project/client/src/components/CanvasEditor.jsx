@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 
+
 function drawPolygon(ctx, x, y, radius, sides, color) {
   ctx.beginPath();
   for (let i = 0; i < sides; i++) {
@@ -115,18 +116,22 @@ const CanvasEditor = ({ initialData }) => {
             drawHandles(ctx, el.x, el.y, w, h);
           }
         }
-      } else if (el.type === "text") {
-        ctx.font = `${el.fontSize || 24}px Arial`;
-        ctx.fillStyle = el.color;
-        ctx.fillText(el.text, el.x, el.y + (el.fontSize || 24));
-        const boxW = el.w;
-        const boxH = el.h || (el.fontSize || 24) + 8;
-        if (idx === selectedIdx) {
-          ctx.strokeStyle = "#f59e42";
-          ctx.strokeRect(el.x - 2, el.y - 2, boxW + 4, boxH + 4);
-          drawHandles(ctx, el.x, el.y, boxW, boxH);
-        }
-      } else {
+      } 
+      else if (el.type === "text") {
+  ctx.font = `${el.fontSize || 24}px ${el.fontFamily || "Arial"}`;
+  ctx.fillStyle = el.color;
+  ctx.fillText(el.text, el.x, el.y + (el.fontSize || 24));
+  const boxW = el.w;
+  const boxH = el.h || (el.fontSize || 24) + 8;
+  if (idx === selectedIdx) {
+    ctx.strokeStyle = "#f59e42";
+    ctx.strokeRect(el.x - 2, el.y - 2, boxW + 4, boxH + 4);
+    drawHandles(ctx, el.x, el.y, boxW, boxH);
+  }
+}
+
+
+       else {
         ctx.fillStyle = el.color;
         ctx.strokeStyle = el.color;
         switch (el.type) {
@@ -447,26 +452,30 @@ const CanvasEditor = ({ initialData }) => {
     saveState([...elements, newElement], lines, designName);
   };
 
+  const [fontFamily, setFontFamily] = useState("Arial");
   const handleAddText = () => {
-    if (!canvasRef.current) return;
-    const text = prompt("Enter text to add:");
-    if (!text) return;
-    const ctx = canvasRef.current.getContext("2d");
-    const { w, h, fontSize } = getDefaultSize("text", text, ctx);
-    const newText = {
-      id: nextId++,
-      type: "text",
-      text,
-      x: 100,
-      y: 100,
-      color: textColor,
-      w,
-      h,
-      fontSize,
-      rotation: 0,
-    };
-    saveState([...elements, newText], lines, designName);
+  if (!canvasRef.current) return;
+  const text = prompt("Enter text to add:");
+  if (!text) return;
+  const ctx = canvasRef.current.getContext("2d");
+  ctx.font = `24px ${fontFamily}`;
+  const { w, h, fontSize } = getDefaultSize("text", text, ctx);
+  const newText = {
+    id: nextId++,
+    type: "text",
+    text,
+    x: 100,
+    y: 100,
+    color: textColor,
+    w,
+    h,
+    fontSize,
+    fontFamily, // <-- add this
+    rotation: 0,
   };
+  saveState([...elements, newText], lines, designName);
+};
+
 
   const handleShapeColorChange = (e) => {
     setShapeColor(e.target.value);
@@ -803,7 +812,43 @@ const CanvasEditor = ({ initialData }) => {
 
           <div className="bg-white rounded-lg shadow-sm p-4 mb-2">
             <h3 className="font-semibold text-lg mb-3 border-b pb-2">Text</h3>
-            <label className="block text-sm mb-1">Text Color</label>
+            
+            <label className="block text-sm mt-2 mb-1">Text Font</label>
+<select
+  className="mb-3 p-1 border rounded w-full"
+  value={fontFamily}
+  onChange={e => {
+    setFontFamily(e.target.value);
+    if (selectedIdx !== null && elements[selectedIdx]?.type === "text") {
+      const newElements = elements.map((el, idx) =>
+        idx === selectedIdx ? { ...el, fontFamily: e.target.value } : el
+      );
+      saveState(newElements, lines, designName);
+    }
+  }}
+>
+  <option value="Arial">Arial</option>
+  <option value="Times New Roman">Times New Roman</option>
+  <option value="Georgia">Georgia</option>
+  <option value="Courier New">Courier New</option>
+  <option value="Comic Sans MS">Comic Sans MS</option>
+  <option value="Verdana">Verdana</option>
+  <option value="Trebuchet MS">Trebuchet MS</option>
+  <option value="Lucida Console">Lucida Console</option>
+  <option value="Impact">Impact</option>
+  <option value="Tahoma">Tahoma</option>
+  <option value="Palatino Linotype">Palatino Linotype</option>
+  <option value="Garamond">Garamond</option>
+  <option value="Brush Script MT">Brush Script MT</option>
+  <option value="Helvetica">Helvetica</option>
+  <option value="Futura">Futura</option>
+  <option value="Gill Sans">Gill Sans</option>
+  <option value="Rockwell">Rockwell</option>
+  <option value="Franklin Gothic Medium">Franklin Gothic Medium</option>
+  <option value="Copperplate">Copperplate</option>
+  <option value="Optima">Optima</option>
+</select>
+<label className="block text-sm mb-1">Text Color</label>
             <input
               type="color"
               value={textColor}
