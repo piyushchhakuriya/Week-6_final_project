@@ -79,7 +79,7 @@ const Dashboard = () => {
           </div>
         </div>
         <button
-          className="px-6 py-2 rounded-full border border-black text-black font-semibold bg-white hover:bg-gray-100 transition tracking-wide" style={{ letterSpacing: '0.05em' }}
+          className="px-6 py-2 rounded-full border border-black text-white font-semibold bg-black transition-colors duration-200 hover:bg-white hover:text-black" style={{ letterSpacing: '0.05em' }}
           onClick={() => {
             localStorage.removeItem('token');
             navigate('/login');
@@ -120,7 +120,7 @@ const Dashboard = () => {
             <option value="Title">Title</option>
           </select>
           <button
-            className="ml-4 px-4 py-2 rounded bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700"
+            className="px-6 py-2 rounded-full border border-black text-white font-semibold bg-black transition-colors duration-200 hover:bg-white hover:text-black"
             onClick={handleAddNew}
           >
             + Add New Design
