@@ -1,89 +1,187 @@
-import React, { useState, useEffect } from 'react';
-import API from '../api/api';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const [designs, setDesigns] = useState([]);
-  const {user , logout , isAuthenticated} = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState('Date Created');
   const navigate = useNavigate();
 
-  const fetchDesigns = async () => {
-    try {
-      const res = await API.get('/designs');
-      setDesigns(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const token = localStorage.getItem('token') || 'YOUR_JWT_TOKEN';
 
   useEffect(() => {
-    
-    if (isAuthenticated){
-      fetchDesigns();
-    }
-  }, [isAuthenticated]);
+    fetchDesigns();
+    // eslint-disable-next-line
+  }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const fetchDesigns = () => {
+    setLoading(true);
+    fetch('http://localhost:5000/api/designs', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setDesigns(data);
+        else if (data.designs && Array.isArray(data.designs)) setDesigns(data.designs);
+        else setDesigns([]);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   };
 
+  const deleteDesign = (id) => {
+    if (!window.confirm('Are you sure you want to delete this design?')) return;
+
+    fetch(`http://localhost:5000/api/designs/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to delete design');
+        setDesigns((prev) => prev.filter((design) => design._id !== id));
+      })
+      .catch((err) => {
+        alert('Failed to delete design: ' + err.message);
+      });
+  };
+
+  const sortedDesigns = [...designs].sort((a, b) => {
+    if (sortBy === "Title") {
+      return (a.title || '').localeCompare(b.title || '');
+    }
+    // Default: Newest first if createdAt exists
+    if (sortBy === "Date Created" && a.createdAt && b.createdAt) {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+    return 0;
+  });
+  const visibleDesigns = sortedDesigns.slice(0, 8);
+
+  const handleAddNew = () => navigate('/editor');
+  const openDesign = (id) => navigate(`/editor/${id}`);
+
   return (
-    <motion.div
-      className="p-6 bg-gray-50 min-h-screen"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8 }}
-    >
-      <Link
-              to="/logout"
-              onClick={handleLogout}
-              className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-            >
-            
-              Logout
-            </Link>
-      {/* <nav className="bg-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Home size={24} className="text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-800">Matty Dashboard</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-600">Welcome, {user?.username || user?.email}!</span>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-            >
-              <LogOut size={18} />
-              Logout
-            </button>
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <header className="flex justify-between items-center px-8 py-4 bg-white shadow">
+        <div className="text-5xl font-extrabold text-black-700 cursor-pointer" onClick={() => navigate('/')} style={{ fontFamily: '"Kablammo", system-ui' }}>
+          Matty
+        </div>
+        <div className="flex gap-4">
+          <div className="flex gap-32 items-center">
+            <a href="#" className="text-gray-700 hover:underline">About us</a>
+            <a href="#" className="text-gray-700 hover:underline">Reviews</a>
+            <a href="#" className="text-gray-700 hover:underline">Our blog</a>
           </div>
         </div>
-      </nav> */}
-      <h1 className="text-3xl font-bold mb-6">My Designs</h1>
-      <Link
-        to="/editor"
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition mb-4 inline-block"
-      >
-        Create New Design
-      </Link>
-      <div className="grid grid-cols-3 gap-4 mt-4">
-        {designs.map((d) => (
-          <div key={d._id} className="border rounded p-2 bg-white shadow hover:shadow-lg transition">
-            {d.thumbnailUrl ? (
-              <img src={d.thumbnailUrl} alt={d.title} className="w-full h-40 object-cover rounded" />
-            ) : (
-              <div className="w-full h-40 bg-gray-200 flex items-center justify-center rounded">No Thumbnail</div>
-            )}
-            <h2 className="text-lg font-bold mt-2">{d.title}</h2>
-            <Link to={`/editor?id=${d._id}`} className="text-blue-600 hover:underline">Edit</Link>
-          </div>
-        ))}
+        <button
+          className="px-6 py-2 rounded-full border border-black text-black font-semibold bg-white hover:bg-gray-100 transition tracking-wide" style={{ letterSpacing: '0.05em' }}
+          onClick={() => {
+            localStorage.removeItem('token');
+            navigate('/login');
+          }}
+        >
+          Logout
+        </button>
+      </header>
+
+      {/* Banner */}
+      <section className="relative mt-6 mx-8 rounded-xl h-80 flex items-center overflow-hidden" style={{ letterSpacing: '0.05em' }}>
+        <video
+          className="absolute inset-0 w-full h-full object-cover brightness-100"
+          autoPlay
+          loop
+          muted
+          playsInline
+          src="/bg.mp4"
+          type="video/mp4"
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-50" /> {/* overlay */}
+        <h1 className="relative z-10 text-4xl font-bold text-white mx-auto">Projects</h1>
+      </section>
+      {/* Controls & sorting */}
+      <div className="flex flex-wrap justify-between items-center my-8 mx-8">
+        <h2 className="text-2xl font-semibold">Recent designs</h2>
+        <div className="flex gap-3 items-center">
+          <label htmlFor="sort" className="text-gray-600 mr-1">
+            Sort by:
+          </label>
+          <select
+            id="sort"
+            className="bg-white border px-2 py-1 rounded"
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+          >
+            <option value="Date Created">Date Created</option>
+            <option value="Title">Title</option>
+          </select>
+          <button
+            className="ml-4 px-4 py-2 rounded bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700"
+            onClick={handleAddNew}
+          >
+            + Add New Design
+          </button>
+        </div>
       </div>
-    </motion.div>
+
+      {/* Design cards */}
+      <div className="mx-8">
+        {loading ? (
+          <div className="py-20 text-center text-gray-500">Loading designs...</div>
+        ) : designs.length === 0 ? (
+          <div className="py-20 text-center text-gray-400">No designs found.</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {visibleDesigns.map((design) => (
+              <div
+                key={design._id}
+                className="bg-white rounded-xl shadow p-3 flex flex-col items-center hover:cursor-pointer hover:shadow-lg relative"
+                title="Click to open editor"
+              >
+                <div onClick={() => openDesign(design._id)} className="w-full">
+                  {design.thumbnailUrl ? (
+                    <img
+                      src={design.thumbnailUrl}
+                      alt="Thumbnail"
+                      className="w-full h-40 object-contain rounded mb-2 bg-gray-100"
+                    />
+                  ) : (
+                    <div className="w-full h-40 bg-gray-200 flex items-center justify-center mb-2 rounded text-gray-400 text-sm">
+                      No thumbnail
+                    </div>
+                  )}
+                  <div className="w-full font-semibold text-center truncate">
+                    {design.title || 'Untitled Design'}
+                  </div>
+                </div>
+                {/* Delete button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteDesign(design._id);
+                  }}
+                  className="absolute top-2 right-2 py-1 px-3 text-sm text-red-600 border border-red-600 rounded hover:bg-red-600 hover:text-white transition"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {designs.length > visibleDesigns.length && (
+          <div className="flex justify-center mt-8">
+            <button className="px-6 py-2 bg-indigo-100 text-indigo-700 rounded font-semibold hover:bg-indigo-200">
+              See more
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
