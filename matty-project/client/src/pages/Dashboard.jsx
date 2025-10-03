@@ -73,7 +73,7 @@ const Dashboard = () => {
         </div>
         <div className="flex gap-4">
           <div className="flex gap-32 items-center">
-            <a href="#" className="text-gray-700 hover:underline">About us</a>
+            <a href="About" className="text-gray-700 hover:underline">About us</a>
             <a href="#" className="text-gray-700 hover:underline">Reviews</a>
             <a href="#" className="text-gray-700 hover:underline">Our blog</a>
           </div>
