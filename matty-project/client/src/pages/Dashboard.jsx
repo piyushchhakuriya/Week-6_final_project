@@ -11,7 +11,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDesigns();
-    
+    // eslint-disable-next-line
   }, []);
 
   const fetchDesigns = () => {
@@ -65,24 +65,24 @@ const Dashboard = () => {
   const openDesign = (id) => navigate(`/editor/${id}`);
 
   return (
-    <div className="min-h-screen bg-white-100">
+    <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="flex justify-between items-center px-8 py-4 ">
-        <div className="text-5xl font-extrabold text-black-700 cursor-pointer"  style={{ fontFamily: '"Kablammo", system-ui' }}>
+      <header className="flex justify-between items-center px-8 py-4 bg-white shadow">
+        <div className="text-5xl font-extrabold text-black-700 cursor-pointer" onClick={() => navigate('/')} style={{ fontFamily: '"Kablammo", system-ui' }}>
           Matty
         </div>
         <div className="flex gap-4">
           <div className="flex gap-32 items-center">
-            <a href="About" className="text-gray-700 hover:underline">About us</a>
+            <a href="#" className="text-gray-700 hover:underline">About us</a>
             <a href="#" className="text-gray-700 hover:underline">Reviews</a>
             <a href="#" className="text-gray-700 hover:underline">Our blog</a>
           </div>
         </div>
         <button
-          className="px-6 py-2 rounded-full border border-black text-white font-semibold bg-black transition-colors duration-200 hover:bg-white hover:text-black " style={{ letterSpacing: '0.05em' }}
+          className="px-6 py-2 rounded-full border border-black text-black font-semibold bg-white hover:bg-gray-100 transition tracking-wide" style={{ letterSpacing: '0.05em' }}
           onClick={() => {
             localStorage.removeItem('token');
-            navigate('/Login');
+            navigate('/login');
           }}
         >
           Logout
@@ -101,7 +101,7 @@ const Dashboard = () => {
           type="video/mp4"
         />
         <div className="absolute inset-0 bg-black bg-opacity-50" /> {/* overlay */}
-        <h1 className="relative z-10 text-6xl font-bold text-white mx-auto" style={{ letterSpacing: '0.08em' }}>Projects</h1>
+        <h1 className="relative z-10 text-4xl font-bold text-white mx-auto">Projects</h1>
       </section>
       {/* Controls & sorting */}
       <div className="flex flex-wrap justify-between items-center my-8 mx-8">
@@ -120,7 +120,7 @@ const Dashboard = () => {
             <option value="Title">Title</option>
           </select>
           <button
-            className="px-6 py-2 rounded-full border border-black text-white font-semibold bg-black transition-colors duration-200 hover:bg-white hover:text-black"
+            className="ml-4 px-4 py-2 rounded bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700"
             onClick={handleAddNew}
           >
             + Add New Design
