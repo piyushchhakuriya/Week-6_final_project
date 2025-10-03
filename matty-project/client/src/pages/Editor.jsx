@@ -1,57 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
-import Toolbar from '../components/Toolbar';
-import CanvasEditor from '../components/CanvasEditor';
-import API from '../api/api';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import CanvasEditor from '../components/CanvasEditor'; // Adjust the path as needed
 
 const Editor = () => {
-  const [design, setDesign] = useState(null);
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const queryParams = new URLSearchParams(location.search);
-  const designId = queryParams.get('id');
-
-  const fetchDesign = async () => {
-    try {
-      if (!designId) {
-        setDesign({ title: 'New Design', jsonData: { shapes: [], text: [], images: [] }, thumbnailUrl: '' });
-        return;
-      }
-      const res = await API.get(`/designs/${designId}`);
-      setDesign(res.data);
-    } catch (err) {
-      console.error(err);
-      navigate('/dashboard');
-    }
-  };
+  const { id } = useParams();
+  const [designData, setDesignData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!id) {
+      setDesignData({}); // New blank design
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
     const token = localStorage.getItem('token');
-    if (!token) navigate('/login');
-    else fetchDesign();
-  }, [designId]);
 
-  const handleAction = (action) => {
-    console.log('Action:', action);
-    // You can implement undo, redo, export PNG functionality here
-  };
+    fetch(`http://localhost:5000/api/designs/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch design');
+        return res.json();
+      })
+      .then((data) => {
+        setDesignData(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setDesignData({});
+        setLoading(false);
+      });
+  }, [id]);
 
-  return (
-    <>
-      <Navbar />
-      <motion.div className="flex bg-gray-50 min-h-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
-        <Sidebar tools={['Rectangle', 'Text', 'Image']} onSelectTool={(tool) => console.log('Selected Tool:', tool)} />
-        <div className="flex-1 p-4">
-          <Toolbar onAction={handleAction} />
-          {design && <CanvasEditor design={design} />}
-        </div>
-      </motion.div>
-    </>
-  );
+  if (loading) return <div>Loading design...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  // Always pass an object to CanvasEditor
+  return <CanvasEditor initialData={designData || {}} />;
 };
 
 export default Editor;

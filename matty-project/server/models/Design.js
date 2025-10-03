@@ -1,11 +1,11 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const designSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    title: { type: String, required: true },
-    jsonData: { type: Object, required: true }, // Konva/Fabric canvas data
-    thumbnailUrl: { type: String },
-    createdAt: { type: Date, default: Date.now }
+const DesignSchema = new mongoose.Schema({
+  title: String,
+  jsonData: Object,
+  thumbnailUrl: String, // <--- stores Base64 PNG
+  userId: String,
+  createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Design', designSchema);
+module.exports = mongoose.model("Design", DesignSchema);
