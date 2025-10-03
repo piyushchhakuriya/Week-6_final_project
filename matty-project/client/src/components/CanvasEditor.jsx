@@ -548,36 +548,66 @@ const CanvasEditor = ({ initialData }) => {
     link.click();
   };
 
+  
+
   const handleSaveToCloud = async () => {
-    if (!canvasRef.current) return;
-    const imageDataURL = canvasRef.current.toDataURL("image/png");
-    try {
-      const response = await fetch("http://localhost:5000/api/designs", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          thumbnailUrl: imageDataURL, // Include as thumbnailUrl field explicitly
-          title: designName.trim() || "Untitled Design",
-          jsonData: {
-            elements,
-            lines,
-          },
-        }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        alert("Design saved and uploaded successfully!");
-      } else {
-        alert("Failed to upload design: " + (data.message || "Unknown error"));
-      }
-    } catch (error) {
-      console.error("Error uploading design:", error);
-      alert("Upload failed, please try again.");
+  if (!canvasRef.current) return;
+
+  // Get PNG data URL
+  const imageDataURL = canvasRef.current.toDataURL("image/png");
+
+  // 1. Upload thumbnail to Cloudinary
+  let thumbnailCloudinaryUrl = '';
+  try {
+    const thumbRes = await fetch("http://localhost:5000/api/upload-thumbnail", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({ dataUrl: imageDataURL }),
+    });
+    const thumbData = await thumbRes.json();
+    if (thumbRes.ok && thumbData.url) {
+      thumbnailCloudinaryUrl = thumbData.url;
+    } else {
+      alert("Error uploading thumbnail to Cloudinary");
+      return;
     }
-  };
+  } catch (err) {
+    alert("Failed to upload thumbnail to Cloudinary");
+    return;
+  }
+
+  // 2. Save everything to MongoDB (including Cloudinary thumbnail URL)
+  try {
+    const response = await fetch("http://localhost:5000/api/designs", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        thumbnailUrl: thumbnailCloudinaryUrl, // NEW: Now a Cloudinary-hosted URL
+        title: designName.trim() || "Untitled Design",
+        jsonData: {
+          elements,
+          lines,
+        }
+      }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      alert("Design saved and uploaded successfully!");
+    } else {
+      alert("Failed to upload design: " + (data.message || "Unknown error"));
+    }
+  } catch (error) {
+    console.error("Error uploading design:", error);
+    alert("Upload failed, please try again.");
+  }
+};
+
 
   const handleDeleteSelected = () => {
     if (selectedIdx !== null) {
@@ -593,7 +623,7 @@ const CanvasEditor = ({ initialData }) => {
       <header className="flex justify-between items-center p-4 bg-gray-100 border-b">
         <div className="text-5xl font-bold" style={{ fontFamily: '"Kablammo", system-ui' }}>MATTY</div>
         <div className="flex gap-2" />
-        <button className="text-gray-700 hover:underline">About Us</button>
+        <button className="text-gray-700 hover:underline" onClick={() => navigate('About')}>About Us</button>
       </header>
 
       <div className="p-2 bg-gray-100 flex items-center gap-4 border-b">
