@@ -1,5 +1,9 @@
 import React, { useRef, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
+
+
 
 function dataURLtoBlob(dataurl) {
   var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
@@ -7,7 +11,9 @@ function dataURLtoBlob(dataurl) {
   while(n--) u8arr[n] = bstr.charCodeAt(n);
   return new Blob([u8arr], {type:mime});
 
+
 }
+
 
 function drawPolygon(ctx, x, y, radius, sides, color) {
   ctx.beginPath();
@@ -26,8 +32,10 @@ function drawPolygon(ctx, x, y, radius, sides, color) {
   ctx.fill();
 }
 
+
 const HANDLE_SIZE = 16;
 let nextId = 1;
+
 
 const getDefaultSize = (type, text, ctx) => {
   if (type === "rectangle") return { w: 120, h: 80 };
@@ -43,10 +51,12 @@ const getDefaultSize = (type, text, ctx) => {
 
 
 
+
 const CanvasEditor = ({ initialData }) => {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const { id: designId } = useParams();
+  const navigate = useNavigate();
   const [saveMessage, setSaveMessage] = useState("");
   const [designName, setDesignName] = useState("");
   const [selectedShape, setSelectedShape] = useState("rectangle");
@@ -64,7 +74,8 @@ const CanvasEditor = ({ initialData }) => {
   const [resizingHandle, setResizingHandle] = useState(null);
   const drawingPointsRef = useRef([]);
 
-  
+
+
 
   const [history, setHistory] = useState([
     { elements: [], lines: [], title: "" },
@@ -72,8 +83,10 @@ const CanvasEditor = ({ initialData }) => {
   const [historyIndex, setHistoryIndex] = useState(0);
   const [imageCache, setImageCache] = useState({});
 
+
   // Destructure current elements, lines, title from history to use in render & save
   const { elements, lines, title } = history[historyIndex];
+
 
   // Load initialData properly when component mounts or changes
  useEffect(() => {
@@ -88,6 +101,7 @@ const CanvasEditor = ({ initialData }) => {
   setDesignName(initialData?.title || "");
 }, [initialData]);
 
+
   // Cache loaded images for drawn image elements
   useEffect(() => {
     elements.forEach((el) => {
@@ -99,6 +113,7 @@ const CanvasEditor = ({ initialData }) => {
     });
   }, [elements, imageCache]);
 
+
   // Draw all elements and lines on canvas on every change
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -107,6 +122,7 @@ const CanvasEditor = ({ initialData }) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.lineCap = "round";
     ctx.lineWidth = 2;
+
 
     elements.forEach((el, idx) => {
       ctx.save();
@@ -117,6 +133,7 @@ const CanvasEditor = ({ initialData }) => {
       ctx.translate(cx, cy);
       ctx.rotate(((el.rotation || 0) * Math.PI) / 180);
       ctx.translate(-cx, -cy);
+
 
       if (el.type === "image") {
         const img = imageCache[el.id];
@@ -131,17 +148,18 @@ const CanvasEditor = ({ initialData }) => {
         }
       } 
       else if (el.type === "text") {
-  ctx.font = `${el.fontSize || 24}px ${el.fontFamily || "Arial"}`;
-  ctx.fillStyle = el.color;
-  ctx.fillText(el.text, el.x, el.y + (el.fontSize || 24));
-  const boxW = el.w;
-  const boxH = el.h || (el.fontSize || 24) + 8;
-  if (idx === selectedIdx) {
-    ctx.strokeStyle = "#f59e42";
-    ctx.strokeRect(el.x - 2, el.y - 2, boxW + 4, boxH + 4);
-    drawHandles(ctx, el.x, el.y, boxW, boxH);
-  }
+ ctx.font = `${el.fontSize || 24}px ${el.fontFamily || "Arial"}`;
+ ctx.fillStyle = el.color;
+ ctx.fillText(el.text, el.x, el.y + (el.fontSize || 24));
+ const boxW = el.w;
+ const boxH = el.h || (el.fontSize || 24) + 8;
+ if (idx === selectedIdx) {
+   ctx.strokeStyle = "#f59e42";
+   ctx.strokeRect(el.x - 2, el.y - 2, boxW + 4, boxH + 4);
+   drawHandles(ctx, el.x, el.y, boxW, boxH);
+ }
 }
+
 
        else {
         ctx.fillStyle = el.color;
@@ -245,6 +263,7 @@ const CanvasEditor = ({ initialData }) => {
       ctx.restore();
     });
 
+
     lines.forEach((line) => {
       ctx.beginPath();
       ctx.strokeStyle = line.mode === "eraser" ? "rgba(0,0,0,1)" : line.color || "#333";
@@ -260,6 +279,7 @@ const CanvasEditor = ({ initialData }) => {
       ctx.globalCompositeOperation = "source-over";
     });
   }, [elements, lines, imageCache, selectedIdx]);
+
 
   function drawHandles(ctx, x, y, w, h) {
     const handles = [
@@ -277,6 +297,7 @@ const CanvasEditor = ({ initialData }) => {
     });
   }
 
+
   const saveState = (newElements, newLines, newTitle = designName) => {
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push({
@@ -289,6 +310,7 @@ const CanvasEditor = ({ initialData }) => {
     setDesignName(newTitle);
   };
 
+
   const handleUndo = () => {
     if (historyIndex > 0) {
       setHistoryIndex(historyIndex - 1);
@@ -296,12 +318,14 @@ const CanvasEditor = ({ initialData }) => {
     }
   };
 
+
   const handleRedo = () => {
     if (historyIndex < history.length - 1) {
       setHistoryIndex(historyIndex + 1);
       setSelectedIdx(null);
     }
   };
+
 
   const getHandleAt = (el, mouseX, mouseY) => {
     const { w, h } = el;
@@ -323,6 +347,7 @@ const CanvasEditor = ({ initialData }) => {
     }
     return null;
   };
+
 
   const handleCanvasMouseDown = (e) => {
     if (!canvasRef.current) return;
@@ -352,16 +377,19 @@ const CanvasEditor = ({ initialData }) => {
     }
     if (!clicked) setSelectedIdx(null);
 
+
     if (drawMode || eraserMode) {
       setIsDrawing(true);
       drawingPointsRef.current = [[mouseX, mouseY]];
     }
   };
 
+
   const handleCanvasMouseMove = (e) => {
     if (!canvasRef.current) return;
     const mouseX = e.nativeEvent.offsetX;
     const mouseY = e.nativeEvent.offsetY;
+
 
     if (resizingHandle !== null && selectedIdx !== null) {
       const el = elements[selectedIdx];
@@ -397,6 +425,7 @@ const CanvasEditor = ({ initialData }) => {
       return;
     }
 
+
     if (isDragging && selectedIdx !== null) {
       const newElements = elements.map((s, idx) =>
         idx === selectedIdx
@@ -409,6 +438,7 @@ const CanvasEditor = ({ initialData }) => {
         return newHistory;
       });
     }
+
 
     if (isDrawing && (drawMode || eraserMode)) {
       const ctx = canvasRef.current.getContext("2d");
@@ -424,6 +454,7 @@ const CanvasEditor = ({ initialData }) => {
       ctx.globalCompositeOperation = "source-over";
     }
   };
+
 
 const handleCanvasMouseUp = () => {
   if (isDrawing) {
@@ -442,6 +473,7 @@ const handleCanvasMouseUp = () => {
   setIsDrawing(false);
 };
 
+
   const handleAddShape = () => {
     if (!canvasRef.current) return;
     const ctx = canvasRef.current.getContext("2d");
@@ -459,6 +491,7 @@ const handleCanvasMouseUp = () => {
     if (selectedShape === "image") return;
     saveState([...elements, newElement], lines, designName);
   };
+
 
   const [fontFamily, setFontFamily] = useState("Arial");
   const handleAddText = () => {
@@ -485,6 +518,7 @@ const handleCanvasMouseUp = () => {
 };
 
 
+
   const handleShapeColorChange = (e) => {
     setShapeColor(e.target.value);
     if (selectedIdx !== null) {
@@ -494,6 +528,7 @@ const handleCanvasMouseUp = () => {
       saveState(newElements, lines, designName);
     }
   };
+
 
   const handleTextColorChange = (e) => {
     setTextColor(e.target.value);
@@ -505,9 +540,11 @@ const handleCanvasMouseUp = () => {
     }
   };
 
+
   const handleUploadImage = () => {
     fileInputRef.current.click();
   };
+
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -530,6 +567,7 @@ const handleCanvasMouseUp = () => {
     e.target.value = "";
   };
 
+
   const moveElement = (dir) => {
     if (selectedIdx === null) return;
     const newElements = [...elements];
@@ -551,11 +589,13 @@ const handleCanvasMouseUp = () => {
     saveState(newElements, lines, designName);
   };
 
+
   const clearCanvas = () => {
     setHistory([{ elements: [], lines: [], title: designName }]);
     setHistoryIndex(0);
     setSelectedIdx(null);
   };
+
 
   const handleDownload = () => {
     if (!canvasRef.current) return;
@@ -565,6 +605,7 @@ const handleCanvasMouseUp = () => {
     link.click();
   };
 
+
   const handleDeleteSelected = () => {
     if (selectedIdx !== null) {
       const newElements = elements.filter((_, idx) => idx !== selectedIdx);
@@ -573,12 +614,14 @@ const handleCanvasMouseUp = () => {
     }
   };
 
- const handleSaveToCloud = async () => {
+
+const handleSaveToCloud = async () => {
   setSaveMessage(""); // Clear old messages first
   try {
     const token = localStorage.getItem("token");
     const imageDataURL = canvasRef.current.toDataURL("image/png");
     const imageBlob = dataURLtoBlob(imageDataURL);
+
 
     // Upload PNG to Cloudinary
     const formData = new FormData();
@@ -591,12 +634,14 @@ const handleCanvasMouseUp = () => {
     const data = await res.json();
     const thumbnailUrl = data.secure_url;
 
+
     // Create your design JSON object
     const jsonData = {
       elements,
       lines,
       title: designName
     };
+
 
     let response;
     if (designId) {
@@ -629,6 +674,7 @@ const handleCanvasMouseUp = () => {
       });
     }
 
+
     if (!response.ok) throw new Error("Failed to save design!");
     setSaveMessage("✅ Design saved successfully!");
   } catch (err) {
@@ -640,18 +686,71 @@ const handleCanvasMouseUp = () => {
 
 
 
+
+
+  // small animation presets
+  const cardAnim = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } };
+  const btnHover = { scale: 1.03 };
+  const btnTap = { scale: 0.97 };
+
+
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#0f172a] via-[#0b1220] to-[#071024] text-slate-100">
       
-      <header className="flex justify-between items-center p-4 bg-gray-100 border-b">
-        <div className="text-5xl font-bold" style={{ fontFamily: '"Kablammo", system-ui' }}>MATTY</div>
-        <div className="flex gap-2" />
-        <button className="text-gray-700 hover:underline" >About Us</button>
+      <header className="flex justify-between items-center p-4 bg-gradient-to-r from-[#0ea5e9] via-[#8b5cf6] to-[#ef4444] shadow-xl">
+        {/* Logo - clickable to dashboard (keeps original MATTY text and font but made clickable) */}
+        <motion.div
+          className="flex items-center gap-3 cursor-pointer select-none"
+          onClick={() => navigate("/dashboard")}
+          whileHover={{ scale: 1.02, rotate: 0.5 }}
+          whileTap={{ scale: 0.98 }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ type: "spring", stiffness: 140 }}
+        >
+          <div className="text-5xl font-extrabold" style={{ fontFamily: '"Kablammo", system-ui', textShadow: "0 6px 20px rgba(0,0,0,0.35)" }}>
+            MATTY
+          </div>
+          <div className="text-sm font-medium opacity-90">Design Studio</div>
+        </motion.div>
+
+
+        <div className="flex items-center gap-4">
+          <motion.div whileHover={btnHover} whileTap={btnTap}>
+  <Link
+    to="/about"
+    className="px-3 py-1.5 rounded-md bg-white text-slate-900 font-medium shadow"
+  >
+    About us
+  </Link>
+</motion.div>
+
+
+          <motion.button
+            onClick={handleSaveToCloud}
+            whileHover={btnHover}
+            whileTap={btnTap}
+            className="px-3 py-1 rounded-md bg-white text-slate-900 font-medium shadow"
+          >
+            Save
+          </motion.button>
+
+
+          <motion.button
+            onClick={handleDownload}
+            whileHover={btnHover}
+            whileTap={btnTap}
+            className="px-3 py-1 rounded-md bg-white/10 text-white border border-white/20"
+          >
+            Export
+          </motion.button>
+        </div>
       </header>
 
-      <div className="p-2 bg-gray-100 flex items-center gap-4 border-b">
+
+      <div className="p-3 bg-slate-900/30 flex items-center gap-4 border-b border-slate-800">
         <input
-          className="border px-3 py-2 rounded font-medium text-lg flex-grow"
+          className="border border-slate-700 bg-slate-800/50 placeholder-slate-400 px-3 py-2 rounded font-medium text-lg flex-grow text-white shadow-inner"
           placeholder="Enter design name"
           value={designName}
           onChange={(e) => {
@@ -660,67 +759,21 @@ const handleCanvasMouseUp = () => {
             saveState(elements, lines, newTitle);
           }}
         />
-        
+        <div className="flex gap-2">
+          <motion.button onClick={clearCanvas} whileHover={btnHover} whileTap={btnTap} className="px-3 py-2 rounded bg-gradient-to-r from-[#ef4444] to-[#f97316] text-white shadow">Clear All</motion.button>
+          <motion.button onClick={handleUndo} disabled={historyIndex === 0} whileHover={btnHover} whileTap={btnTap} className="px-3 py-2 rounded bg-slate-800/60 text-white border border-slate-700">Undo</motion.button>
+          <motion.button onClick={handleRedo} disabled={historyIndex === history.length - 1} whileHover={btnHover} whileTap={btnTap} className="px-3 py-2 rounded bg-slate-800/60 text-white border border-slate-700">Redo</motion.button>
+        </div>
       </div>
 
-      <div className="flex gap-4 p-2 bg-gray-50 border-b">
-        <button onClick={clearCanvas}>Clear All</button>
-        <button onClick={handleUndo} disabled={historyIndex === 0}>
-          Undo
-        </button>
-        <button onClick={handleRedo} disabled={historyIndex === history.length - 1}>
-          Redo
-        </button>
-        <button
-          onClick={() => moveElement("up")}
-          disabled={selectedIdx === null || selectedIdx >= elements.length - 1}
-        >
-          Move Up
-        </button>
-        <button
-          onClick={() => moveElement("down")}
-          disabled={selectedIdx === null || selectedIdx <= 0}
-        >
-          Move Down
-        </button>
-        <label className="ml-4 flex items-center gap-2">
-          Rotation:
-          <input
-            type="range"
-            min={0}
-            max={360}
-            value={selectedIdx !== null ? elements[selectedIdx].rotation || 0 : 0}
-            onChange={(e) => {
-              if (selectedIdx !== null) {
-                const angle = Number(e.target.value);
-                const newElements = elements.map((el, idx) =>
-                  idx === selectedIdx ? { ...el, rotation: angle } : el
-                );
-                saveState(newElements, lines, designName);
-              }
-            }}
-          />
-          <span>{selectedIdx !== null ? elements[selectedIdx].rotation || 0 : 0}°</span>
-        </label>
-        {selectedIdx !== null && (
-          <button
-            className="px-3 py-1 bg-red-100 text-red-700 rounded border border-red-300"
-            onClick={handleDeleteSelected}
-          >
-            Delete Selected
-          </button>
-        )}
-      </div>
 
-      <div className="flex flex-1">
-        <aside className="flex flex-col gap-6 p-4 bg-gray-50 border-r min-w-[240px]">
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-2">
-            <h3 className="font-semibold text-lg mb-3 border-b pb-2">Drawing Tools</h3>
+      <div className="flex gap-4 p-4">
+        <aside className="flex flex-col gap-6 p-4 bg-gradient-to-b from-slate-800/60 to-slate-900/40 border border-slate-800 rounded-2xl w-80 shadow-2xl">
+          <motion.div className="bg-slate-900/70 rounded-lg p-4 shadow-inner" variants={cardAnim} initial="hidden" animate="show">
+            <h3 className="font-semibold text-lg mb-3 border-b border-slate-700 pb-2 text-slate-200">Drawing Tools</h3>
             <div className="flex gap-2 mb-3">
-              <button
-                className={`py-2 px-4 rounded ${
-                  drawMode && !eraserMode ? "bg-blue-100 font-bold" : "bg-gray-100"
-                }`}
+              <motion.button
+                className={`py-2 px-4 rounded ${drawMode && !eraserMode ? "bg-gradient-to-r from-[#60a5fa] to-[#a78bfa] text-white font-semibold" : "bg-slate-800/40 text-white"}`}
                 onClick={() => {
                   if (drawMode) setDrawMode(false);
                   else {
@@ -728,13 +781,13 @@ const handleCanvasMouseUp = () => {
                     setEraserMode(false);
                   }
                 }}
+                whileHover={btnHover}
+                whileTap={btnTap}
               >
                 Pencil
-              </button>
-              <button
-                className={`py-2 px-4 rounded ${
-                  eraserMode ? "bg-blue-100 font-bold" : "bg-gray-100"
-                }`}
+              </motion.button>
+              <motion.button
+                className={`py-2 px-4 rounded ${eraserMode ? "bg-gradient-to-r from-[#fca5a5] to-[#fecaca] text-white font-semibold" : "bg-slate-800/40 text-white"}`}
                 onClick={() => {
                   if (eraserMode) setEraserMode(false);
                   else {
@@ -742,21 +795,24 @@ const handleCanvasMouseUp = () => {
                     setDrawMode(false);
                   }
                 }}
+                whileHover={btnHover}
+                whileTap={btnTap}
               >
                 Eraser
-              </button>
+              </motion.button>
             </div>
             <div className="mb-3">
-              <label className="block text-sm mb-1">Pencil Color</label>
+              <label className="block text-sm mb-1 text-slate-300">Pencil Color</label>
               <input
                 type="color"
                 value={pencilColor}
                 onChange={(e) => setPencilColor(e.target.value)}
-                className="w-8 h-8 p-0 border-0"
+                className="w-10 h-10 p-0 border-0 rounded"
+                title="Pencil Color"
               />
             </div>
             <div className="mb-3">
-              <label className="block text-sm mb-1">Brush Size</label>
+              <label className="block text-sm mb-1 text-slate-300">Brush Size</label>
               <input
                 type="range"
                 min={1}
@@ -765,10 +821,10 @@ const handleCanvasMouseUp = () => {
                 onChange={(e) => setBrushSize(Number(e.target.value))}
                 className="w-full"
               />
-              <span className="text-xs">{brushSize}px</span>
+              <span className="text-xs text-slate-400">{brushSize}px</span>
             </div>
             <div>
-              <label className="block text-sm mb-1">Eraser Size</label>
+              <label className="block text-sm mb-1 text-slate-300">Eraser Size</label>
               <input
                 type="range"
                 min={5}
@@ -777,15 +833,16 @@ const handleCanvasMouseUp = () => {
                 onChange={(e) => setEraserSize(Number(e.target.value))}
                 className="w-full"
               />
-              <span className="text-xs">{eraserSize}px</span>
+              <span className="text-xs text-slate-400">{eraserSize}px</span>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-2">
-            <h3 className="font-semibold text-lg mb-3 border-b pb-2">Shapes</h3>
-            <label className="block text-sm mb-1">Shape</label>
+
+          <motion.div className="bg-slate-900/70 rounded-lg p-4 shadow-inner" variants={cardAnim} initial="hidden" animate="show">
+            <h3 className="font-semibold text-lg mb-3 border-b border-slate-700 pb-2 text-slate-200">Shapes</h3>
+            <label className="block text-sm mb-1 text-slate-300">Shape</label>
             <select
-              className="mb-3 p-1 border rounded w-full"
+              className="mb-3 p-2 border rounded w-full bg-slate-800/40 text-white"
               value={selectedShape}
               onChange={(e) => {
                 setSelectedShape(e.target.value);
@@ -809,27 +866,38 @@ const handleCanvasMouseUp = () => {
               <option value="nonagon">Nonagon</option>
               <option value="decagon">Decagon</option>
             </select>
-            <label className="block text-sm mb-1">Shape Color</label>
-            <input
-              type="color"
-              value={shapeColor}
-              onChange={handleShapeColorChange}
-              className="w-8 h-8 p-0 border-0"
-            />
-            <button
-              className="w-full mt-3 py-2 rounded bg-gray-100 hover:bg-blue-50"
-              onClick={handleAddShape}
-            >
-              Add Shape
-            </button>
-          </div>
+            <label className="block text-sm mb-1 text-slate-300">Shape Color</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={shapeColor}
+                onChange={handleShapeColorChange}
+                className="w-10 h-10 p-0 border-0 rounded"
+              />
+              <motion.button
+                className="flex-1 py-2 rounded bg-gradient-to-r from-[#60a5fa] to-[#a78bfa] text-white"
+                onClick={handleAddShape}
+                whileHover={btnHover}
+                whileTap={btnTap}
+              >
+                Add Shape
+              </motion.button>
+            </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-2">
-            <h3 className="font-semibold text-lg mb-3 border-b pb-2">Text</h3>
+
+            <div className="flex gap-2 mt-3">
+              <motion.button whileHover={btnHover} whileTap={btnTap} onClick={() => moveElement("up")} className="flex-1 py-2 rounded bg-slate-800/40">Move Up</motion.button>
+              <motion.button whileHover={btnHover} whileTap={btnTap} onClick={() => moveElement("down")} className="flex-1 py-2 rounded bg-slate-800/40">Move Down</motion.button>
+            </div>
+          </motion.div>
+
+
+          <motion.div className="bg-slate-900/70 rounded-lg p-4 shadow-inner" variants={cardAnim} initial="hidden" animate="show">
+            <h3 className="font-semibold text-lg mb-3 border-b border-slate-700 pb-2 text-slate-200">Text</h3>
             
-            <label className="block text-sm mt-2 mb-1">Text Font</label>
+            <label className="block text-sm mt-2 mb-1 text-slate-300">Text Font</label>
 <select
-  className="mb-3 p-1 border rounded w-full"
+  className="mb-3 p-2 border rounded w-full bg-slate-800/40 text-white"
   value={fontFamily}
   onChange={e => {
     setFontFamily(e.target.value);
@@ -862,45 +930,38 @@ const handleCanvasMouseUp = () => {
   <option value="Copperplate">Copperplate</option>
   <option value="Optima">Optima</option>
 </select>
-<label className="block text-sm mb-1">Text Color</label>
-            <input
-              type="color"
-              value={textColor}
-              onChange={handleTextColorChange}
-              className="w-8 h-8 p-0 border-0"
-            />
-            <button
-              className="w-full mt-3 py-2 rounded bg-gray-100 hover:bg-blue-50"
-              onClick={handleAddText}
-            >
-              Add Text
-            </button>
-          </div>
+<label className="block text-sm mb-1 text-slate-300">Text Color</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={textColor}
+                onChange={handleTextColorChange}
+                className="w-10 h-10 p-0 border-0 rounded"
+              />
+              <motion.button
+                className="flex-1 py-2 rounded bg-gradient-to-r from-[#34d399] to-[#10b981] text-white"
+                onClick={handleAddText}
+                whileHover={btnHover}
+                whileTap={btnTap}
+              >
+                Add Text
+              </motion.button>
+            </div>
+          </motion.div>
 
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <button
-              className="w-full mb-2 py-2 rounded bg-gray-100 hover:bg-blue-50"
-              onClick={handleUploadImage}
-            >
-              Upload Image
-            </button>
-            <button
-              className="w-full mb-2 py-2 rounded bg-gray-100 hover:bg-blue-50"
-              onClick={handleSaveToCloud}
-            >
-              Save to Cloud
-            </button>
-            {saveMessage && (
-  <div style={{ color: saveMessage.startsWith("✅") ? "green" : "red", margin: "10px 0" }}>
-    {saveMessage}
-  </div>
-)}
-            <button
-              className="w-full py-2 rounded bg-gray-100 hover:bg-blue-50"
-              onClick={handleDownload}
-            >
-              Download
-            </button>
+
+          <motion.div className="bg-slate-900/70 rounded-lg p-4 shadow-inner" variants={cardAnim} initial="hidden" animate="show">
+            <h3 className="font-semibold text-lg mb-3 border-b border-slate-700 pb-2 text-slate-200">Export / Images</h3>
+            <div className="flex flex-col gap-2">
+              <motion.button className="py-2 rounded bg-slate-800/40 text-white" onClick={handleUploadImage} whileHover={btnHover} whileTap={btnTap}>Upload Image</motion.button>
+              <motion.button className="py-2 rounded bg-gradient-to-r from-[#fde68a] to-[#fca5a5] text-slate-900 font-semibold" onClick={handleSaveToCloud} whileHover={btnHover} whileTap={btnTap}>Save to Cloud</motion.button>
+              <motion.button className="py-2 rounded bg-slate-800/40 text-white" onClick={handleDownload} whileHover={btnHover} whileTap={btnTap}>Download</motion.button>
+              {saveMessage && (
+                <div className={`mt-2 p-2 rounded text-sm ${saveMessage.startsWith("✅") ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+                  {saveMessage}
+                </div>
+              )}
+            </div>
             <input
               type="file"
               accept="image/*"
@@ -908,24 +969,54 @@ const handleCanvasMouseUp = () => {
               style={{ display: "none" }}
               onChange={handleFileChange}
             />
-          </div>
+          </motion.div>
         </aside>
 
-        <main className="flex-1 flex items-center justify-center">
-          <canvas
-            ref={canvasRef}
-            width={1000}
-            height={700}
-            style={{ background: "#fff", border: "2px solid #505050d1", marginTop: "-250px" }}
-            onMouseDown={handleCanvasMouseDown}
-            onMouseMove={handleCanvasMouseMove}
-            onMouseUp={handleCanvasMouseUp}
-            onMouseLeave={handleCanvasMouseUp}
-          />
+
+        {/* FIX: added min-w-0 to allow flex shrinking and max width to main wrapper */}
+      <main className="flex-1 flex items-center justify-center min-w-0 -mt-28">
+
+
+
+          <motion.div
+            initial={{ scale: 0.995, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 120 }}
+            className="bg-gradient-to-b from-white/5 to-white/2 p-6 rounded-3xl shadow-2xl border border-white/5 w-full max-w-[1000px]"
+          >
+            <div className="max-w-[1000px] w-full h-[700px] rounded-xl overflow-hidden relative">
+              <canvas
+                ref={canvasRef}
+                width={1000}
+                height={700}
+                style={{ background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)", border: "2px solid rgba(80,80,80,0.2)" }}
+                onMouseDown={handleCanvasMouseDown}
+                onMouseMove={handleCanvasMouseMove}
+                onMouseUp={handleCanvasMouseUp}
+                onMouseLeave={handleCanvasMouseUp}
+              />
+              {/* overlay little HUD */}
+              <div className="absolute left-4 top-4 bg-black/30 text-white px-3 py-1 rounded backdrop-blur-sm text-xs">Pro Canvas • {elements.length} elements</div>
+              <div className="absolute right-4 bottom-4 bg-black/20 text-white px-3 py-1 rounded text-xs">Status: {saveMessage ? saveMessage : "Unsaved"}</div>
+            </div>
+
+
+            <div className="mt-4 flex items-center justify-between text-sm text-slate-300">
+              <div>Selected: {selectedIdx !== null ? (elements[selectedIdx]?.type || '—') : 'None'}</div>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2">Rotation
+                  <input type="range" min={0} max={360} value={selectedIdx !== null ? elements[selectedIdx].rotation || 0 : 0} onChange={(e) => { if (selectedIdx !== null) { const angle = Number(e.target.value); const newElements = elements.map((el, idx) => idx === selectedIdx ? { ...el, rotation: angle } : el); saveState(newElements, lines, designName); } }} className="mx-2" />
+                </label>
+                <span className="text-slate-300">{selectedIdx !== null ? elements[selectedIdx].rotation || 0 : 0}°</span>
+                <motion.button onClick={handleDeleteSelected} whileHover={btnHover} whileTap={btnTap} className="px-3 py-1 rounded bg-red-600 text-white ml-3">Delete Selected</motion.button>
+              </div>
+            </div>
+          </motion.div>
         </main>
       </div>
     </div>
   );
 };
+
 
 export default CanvasEditor;
