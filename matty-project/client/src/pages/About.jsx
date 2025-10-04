@@ -1,48 +1,40 @@
 import React from "react";
 
 const AboutUs = () => (
-  <div className="min-h-screen bg-gray-50 px-4 py-10 flex flex-col items-center">
-    <div className="max-w-4xl w-full">
-      <h1 className="text-5xl font-extrabold text-center text-black mb-6">About Matty</h1>
-      <p className="text-lg text-gray-700 mb-10 text-center">
-        <span className="font-bold">Matty</span> is the next-generation visual design and diagramming platform for students, creators, and developers—from simple sketches to complex product flows.
-        Built with modern web technology, Matty empowers fast creative work with real-time editing, secure cloud storage, and instant project management.
+  <div className="bg-gray-50 min-h-screen flex flex-col items-center">
+    <div className="max-w-3xl w-full px-6 py-12">
+      <h1 className="text-8xl font-extrabold mb-6 text-center text-black" style={{ fontFamily: '"Kablammo", system-ui' }}>
+        Matty
+      </h1>
+      <p className="text-lg mb-8 text-gray-800 text-center">
+        <span className="font-bold">Matty</span> is a next-generation visual design tool for creators, students, and professionals. Whether you're sketching concepts, building presentations, or designing software diagrams, Matty's powerful canvas and instant cloud dashboard empower you to work fast, share, and stay organized.
       </p>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-indigo-700 mb-2">Why Choose Matty?</h2>
-        <ul className="list-disc pl-6 text-gray-800 space-y-2">
-          <li>
-            <span className="font-bold">Easy Canvas Editing:</span> Draw, drag, resize, annotate, and upload—all with a single click.
-          </li>
-          <li>
-            <span className="font-bold">Design Management:</span> Organize and revisit your projects from your dashboard, every design gets a live thumbnail!
-          </li>
-          <li>
-            <span className="font-bold">Secure & Collaborative:</span> Privacy-first and teamwork ready—with login, JWT authentication, and powerful sharing.
-          </li>
-          <li>
-            <span className="font-bold">Lightning Fast:</span> Built on React and Node.js for performance even in the classroom or on the move.
-          </li>
+      <section className="mb-10">
+        <h2 className="text-2xl font-bold text-gray-700 mb-2">Key Features</h2>
+        <ul className="list-disc pl-8 text-gray-700 space-y-2">
+          <li><span className="font-bold">Intuitive Canvas:</span> Drag, draw, and edit shapes, text, or images effortlessly.</li>
+          <li><span className="font-bold">Real-time Saving:</span> Instantly save projects with thumbnails to your personal dashboard.</li>
+          <li><span className="font-bold">Team Collaboration:</span> Share designs and collaborate securely with others.</li>
+          <li><span className="font-bold">Built for Speed:</span> Cutting-edge React/Node.js stack means seamless user experience.</li>
         </ul>
-      </div>
-      <div>
-        <h2 className="text-2xl font-bold text-indigo-700 mb-2">Our Mission</h2>
-        <p className="text-gray-700">
-          Matty’s goal is creative freedom for everyone.<br/>
-          Whether you’re a student building assignments, a software engineer designing APIs, or an artist sketching ideas—Matty has the speed, features, and flexibility you need.
+      </section>
+      <section className="mb-10">
+        <h2 className="text-2xl font-bold text-gray-700 mb-2">Our Mission</h2>
+        <p>
+          The goal of Matty is creative freedom for everyone—students, innovators, educators, engineers. We believe digital tools should spark ideas and productivity, not slow them down.
         </p>
-      </div>
-      <div className="mt-10 text-center">
+      </section>
+      <div className="text-center mt-8">
         <a
           href="/register"
           className="inline-block px-6 py-2 rounded-full border border-black bg-black text-white font-semibold hover:bg-white hover:text-black transition"
         >
-          Get Started Free
+          Try Matty Free
         </a>
       </div>
     </div>
-    <footer className="w-full mt-16 text-center text-sm text-gray-400">
-      &copy; {new Date().getFullYear()} Matty AI Design Tool. Crafted for teams, students, and innovators.
+    <footer className="w-full py-4 text-center text-gray-500 text-sm mt-14 border-t">
+      &copy; {new Date().getFullYear()} Matty Product Platform. Designed for builders, learners and teams.
     </footer>
   </div>
 );

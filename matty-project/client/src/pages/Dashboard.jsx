@@ -67,19 +67,20 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="flex justify-between items-center px-8 py-4 bg-white shadow">
+      <header className="flex justify-between items-center px-8 py-4 ">
         <div className="text-5xl font-extrabold text-black-700 cursor-pointer" onClick={() => navigate('/')} style={{ fontFamily: '"Kablammo", system-ui' }}>
           Matty
         </div>
         <div className="flex gap-4">
           <div className="flex gap-32 items-center">
-            <a href="#" className="text-gray-700 hover:underline">About us</a>
+            <a href="About" className="text-gray-700 hover:underline">About us</a>
             <a href="#" className="text-gray-700 hover:underline">Reviews</a>
             <a href="#" className="text-gray-700 hover:underline">Our blog</a>
           </div>
         </div>
         <button
-          className="px-6 py-2 rounded-full border border-black text-black font-semibold bg-white hover:bg-gray-100 transition tracking-wide" style={{ letterSpacing: '0.05em' }}
+          className="px-6 py-2 rounded-full border border-black text-white font-semibold bg-black transition-colors duration-200 hover:bg-white hover:text-black hover:scale-[1.05] 
+  hover:shadow-2xl" style={{ letterSpacing: '0.05em' }}
           onClick={() => {
             localStorage.removeItem('token');
             navigate('/login');
@@ -90,7 +91,7 @@ const Dashboard = () => {
       </header>
 
       {/* Banner */}
-      <section className="relative mt-6 mx-8 rounded-xl h-80 flex items-center overflow-hidden" style={{ letterSpacing: '0.05em' }}>
+      <section className="relative mt-4 mx-8 rounded-xl h-80 flex items-center overflow-hidden" style={{ letterSpacing: '0.05em' }}>
         <video
           className="absolute inset-0 w-full h-full object-cover brightness-100"
           autoPlay
@@ -120,7 +121,8 @@ const Dashboard = () => {
             <option value="Title">Title</option>
           </select>
           <button
-            className="ml-4 px-4 py-2 rounded bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700"
+            className="px-6 py-2 rounded-full border border-black text-white font-semibold bg-black transition-colors duration-200 hover:bg-white hover:text-black hover:scale-[1.05] 
+  hover:shadow-2xl"
             onClick={handleAddNew}
           >
             + Add New Design
@@ -131,15 +133,27 @@ const Dashboard = () => {
       {/* Design cards */}
       <div className="mx-8">
         {loading ? (
-          <div className="py-20 text-center text-gray-500">Loading designs...</div>
+          <div className="py-20 text-center text-gray-500 ">Loading designs...</div>
         ) : designs.length === 0 ? (
-          <div className="py-20 text-center text-gray-400">No designs found.</div>
+          <div className="py-20 text-center text-gray-400 ">No designs found.</div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {visibleDesigns.map((design) => (
               <div
                 key={design._id}
-                className="bg-white rounded-xl shadow p-3 flex flex-col items-center hover:cursor-pointer hover:shadow-lg relative"
+                className=" bg-stone-950 text-white
+  rounded-3xl 
+  shadow-lg 
+  p-4 
+  flex flex-col items-center 
+  hover:scale-[1.05] 
+  hover:shadow-2xl 
+  hover:z-20
+  transition-all duration-300 
+  cursor-pointer
+  border border-transparent hover:border-black
+  relative overflow-hidden
+  group"
                 title="Click to open editor"
               >
                 <div onClick={() => openDesign(design._id)} className="w-full">
@@ -147,14 +161,14 @@ const Dashboard = () => {
                     <img
                       src={design.thumbnailUrl}
                       alt="Thumbnail"
-                      className="w-full h-40 object-contain rounded mb-2 bg-gray-100"
+                      className="w-full h-80 object-contain  bg-gray-100 rounded-2xl mb-5"
                     />
                   ) : (
                     <div className="w-full h-40 bg-gray-200 flex items-center justify-center mb-2 rounded text-gray-400 text-sm">
                       No thumbnail
                     </div>
                   )}
-                  <div className="w-full font-semibold text-center truncate">
+                  <div className="w-full font-semibold text-center text-xl truncate ">
                     {design.title || 'Untitled Design'}
                   </div>
                 </div>
@@ -164,7 +178,7 @@ const Dashboard = () => {
                     e.stopPropagation();
                     deleteDesign(design._id);
                   }}
-                  className="absolute top-2 right-2 py-1 px-3 text-sm text-red-600 border border-red-600 rounded hover:bg-red-600 hover:text-white transition"
+                  className="absolute rounded-2xl top-5 right-5 py-1 px-3 text-sm text-white bg-black border border-black rounded hover:bg-yellow-300 hover:text-black transition"
                 >
                   Delete
                 </button>

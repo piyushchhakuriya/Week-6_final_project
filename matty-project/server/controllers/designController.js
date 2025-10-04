@@ -33,16 +33,16 @@ exports.getDesigns = async (req, res) => {
 exports.updateDesign = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, jsonData, thumbnailUrl } = req.body;
-    const design = await Design.findByIdAndUpdate(
+    const { thumbnailUrl, title, jsonData } = req.body;
+    const updated = await Design.findByIdAndUpdate(
       id,
-      { title, jsonData, thumbnailUrl },
+      { title, thumbnailUrl, jsonData },
       { new: true }
     );
-    if (!design) return res.status(404).json({ message: "Design not found" });
-    res.json(design);
+    if (!updated) return res.status(404).json({ message: "Design not found" });
+    res.json(updated);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Update failed", error: err.toString() });
   }
 };
 
