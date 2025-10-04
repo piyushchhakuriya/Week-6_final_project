@@ -1,5 +1,13 @@
 import React, { useRef, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
+function dataURLtoBlob(dataurl) {
+  var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+  while(n--) u8arr[n] = bstr.charCodeAt(n);
+  return new Blob([u8arr], {type:mime});
+
+}
 
 function drawPolygon(ctx, x, y, radius, sides, color) {
   ctx.beginPath();
@@ -33,10 +41,13 @@ const getDefaultSize = (type, text, ctx) => {
   return { w: 120, h: 80 };
 };
 
+
+
 const CanvasEditor = ({ initialData }) => {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
-
+  const { id: designId } = useParams();
+  const [saveMessage, setSaveMessage] = useState("");
   const [designName, setDesignName] = useState("");
   const [selectedShape, setSelectedShape] = useState("rectangle");
   const [shapeColor, setShapeColor] = useState("#4f46e5");
@@ -52,6 +63,8 @@ const CanvasEditor = ({ initialData }) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [resizingHandle, setResizingHandle] = useState(null);
   const drawingPointsRef = useRef([]);
+
+  
 
   const [history, setHistory] = useState([
     { elements: [], lines: [], title: "" },
@@ -129,7 +142,6 @@ const CanvasEditor = ({ initialData }) => {
     drawHandles(ctx, el.x, el.y, boxW, boxH);
   }
 }
-
 
        else {
         ctx.fillStyle = el.color;
@@ -237,6 +249,7 @@ const CanvasEditor = ({ initialData }) => {
       ctx.beginPath();
       ctx.strokeStyle = line.mode === "eraser" ? "rgba(0,0,0,1)" : line.color || "#333";
       ctx.lineWidth = line.size || 2;
+      
       ctx.globalCompositeOperation =
         line.mode === "eraser" ? "destination-out" : "source-over";
       line.points.forEach(([x, y], i) => {
@@ -412,27 +425,22 @@ const CanvasEditor = ({ initialData }) => {
     }
   };
 
-  const handleCanvasMouseUp = () => {
-    if (isDrawing) {
-      if (!canvasRef.current) return;
-      const newLine = {
-        id: nextId++,
-        points: drawingPointsRef.current,
-        color: pencilColor,
-        size: brushSize,
-        mode: eraserMode ? "eraser" : "draw",
-      };
-      saveState(elements, [...lines, newLine], designName);
-    }
-
-    if (resizingHandle !== null) {
-      setResizingHandle(null);
-    }
-    if (isDragging) {
-      setIsDragging(false);
-    }
-    setIsDrawing(false);
-  };
+const handleCanvasMouseUp = () => {
+  if (isDrawing) {
+    if (!canvasRef.current) return;
+    const newLine = {
+      id: nextId++,
+      points: drawingPointsRef.current,
+      color: pencilColor,
+      size: eraserMode ? eraserSize : brushSize,
+      mode: eraserMode ? "eraser" : "draw",
+    };
+    saveState(elements, [...lines, newLine], designName);
+  }
+  if (resizingHandle !== null) setResizingHandle(null);
+  if (isDragging) setIsDragging(false);
+  setIsDrawing(false);
+};
 
   const handleAddShape = () => {
     if (!canvasRef.current) return;
@@ -557,67 +565,6 @@ const CanvasEditor = ({ initialData }) => {
     link.click();
   };
 
-  
-
-  const handleSaveToCloud = async () => {
-  if (!canvasRef.current) return;
-
-  // Get PNG data URL
-  const imageDataURL = canvasRef.current.toDataURL("image/png");
-
-  // 1. Upload thumbnail to Cloudinary
-  let thumbnailCloudinaryUrl = '';
-  try {
-    const thumbRes = await fetch("http://localhost:5000/api/upload-thumbnail", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      body: JSON.stringify({ dataUrl: imageDataURL }),
-    });
-    const thumbData = await thumbRes.json();
-    if (thumbRes.ok && thumbData.url) {
-      thumbnailCloudinaryUrl = thumbData.url;
-    } else {
-      alert("Error uploading thumbnail to Cloudinary");
-      return;
-    }
-  } catch (err) {
-    alert("Failed to upload thumbnail to Cloudinary");
-    return;
-  }
-
-  // 2. Save everything to MongoDB (including Cloudinary thumbnail URL)
-  try {
-    const response = await fetch("http://localhost:5000/api/designs", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      body: JSON.stringify({
-        thumbnailUrl: thumbnailCloudinaryUrl, // NEW: Now a Cloudinary-hosted URL
-        title: designName.trim() || "Untitled Design",
-        jsonData: {
-          elements,
-          lines,
-        }
-      }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      alert("Design saved and uploaded successfully!");
-    } else {
-      alert("Failed to upload design: " + (data.message || "Unknown error"));
-    }
-  } catch (error) {
-    console.error("Error uploading design:", error);
-    alert("Upload failed, please try again.");
-  }
-};
-
-
   const handleDeleteSelected = () => {
     if (selectedIdx !== null) {
       const newElements = elements.filter((_, idx) => idx !== selectedIdx);
@@ -626,13 +573,80 @@ const CanvasEditor = ({ initialData }) => {
     }
   };
 
+ const handleSaveToCloud = async () => {
+  setSaveMessage(""); // Clear old messages first
+  try {
+    const token = localStorage.getItem("token");
+    const imageDataURL = canvasRef.current.toDataURL("image/png");
+    const imageBlob = dataURLtoBlob(imageDataURL);
+
+    // Upload PNG to Cloudinary
+    const formData = new FormData();
+    formData.append("file", imageBlob);
+    formData.append("upload_preset", "MattyDesignTool");
+    const res = await fetch("https://api.cloudinary.com/v1_1/dvxazjesy/image/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    const thumbnailUrl = data.secure_url;
+
+    // Create your design JSON object
+    const jsonData = {
+      elements,
+      lines,
+      title: designName
+    };
+
+    let response;
+    if (designId) {
+      // Existing design: update
+      response = await fetch(`http://localhost:5000/api/designs/${designId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: designName,
+          thumbnailUrl,
+          jsonData,
+        }),
+      });
+    } else {
+      // New design: create
+      response = await fetch('http://localhost:5000/api/designs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: designName,
+          thumbnailUrl,
+          jsonData,
+        }),
+      });
+    }
+
+    if (!response.ok) throw new Error("Failed to save design!");
+    setSaveMessage("✅ Design saved successfully!");
+  } catch (err) {
+    setSaveMessage("❌ Save failed: " + err.message);
+  }
+};
+
+
+
+
+
   return (
     <div className="flex flex-col h-screen">
       
       <header className="flex justify-between items-center p-4 bg-gray-100 border-b">
         <div className="text-5xl font-bold" style={{ fontFamily: '"Kablammo", system-ui' }}>MATTY</div>
         <div className="flex gap-2" />
-        <button className="text-gray-700 hover:underline" onClick={() => navigate('About')}>About Us</button>
+        <button className="text-gray-700 hover:underline" >About Us</button>
       </header>
 
       <div className="p-2 bg-gray-100 flex items-center gap-4 border-b">
@@ -876,6 +890,11 @@ const CanvasEditor = ({ initialData }) => {
             >
               Save to Cloud
             </button>
+            {saveMessage && (
+  <div style={{ color: saveMessage.startsWith("✅") ? "green" : "red", margin: "10px 0" }}>
+    {saveMessage}
+  </div>
+)}
             <button
               className="w-full py-2 rounded bg-gray-100 hover:bg-blue-50"
               onClick={handleDownload}
@@ -897,7 +916,7 @@ const CanvasEditor = ({ initialData }) => {
             ref={canvasRef}
             width={1000}
             height={700}
-            style={{ background: "#fff", border: "1px solid #eee", marginTop: "-250px" }}
+            style={{ background: "#fff", border: "2px solid #505050d1", marginTop: "-250px" }}
             onMouseDown={handleCanvasMouseDown}
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
