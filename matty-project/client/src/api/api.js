@@ -1,5 +1,5 @@
 // Backend URL: use environment variable if set, otherwise fallback to local
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://week-6-final-project-6.onrender.com';
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api';
 
 let authToken = null;
 let currentUser = null;
