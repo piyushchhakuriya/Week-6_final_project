@@ -12,6 +12,7 @@ const connectDB = require('./config/db');
 
 const app = express();
 
+// Cloudinary config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -19,18 +20,23 @@ cloudinary.config({
 });
 
 // Middleware
+app.use(express.json({ limit: '10mb' })); // large JSON payloads
+
+// CORS
 app.use(cors({
   origin: [
-    "http://localhost:5173",
-    "https://webmatty.netlify.app/"
+    "http://localhost:5173",           // local frontend
+    "https://webmatty.netlify.app"     // deployed frontend
   ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
-app.use(express.json({ limit: '10mb' })); // increased for large base64 payloads
+// Preflight OPTIONS requests handle
+app.options("*", cors());
 
-//health
+// Health check
 app.get('/', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Backend API is running 🚀' });
 });
@@ -39,7 +45,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/designs', designRoutes);
 
-// Cloudinary upload route for thumbnail
+// Cloudinary upload route
 app.post('/api/upload-thumbnail', async (req, res) => {
   try {
     const { dataUrl } = req.body;
@@ -53,7 +59,7 @@ app.post('/api/upload-thumbnail', async (req, res) => {
   }
 });
 
-// MongoDB connection
+// Connect to MongoDB
 connectDB();
 
 // Start server
