@@ -56,7 +56,7 @@ const apiRequest = async (endpoint, options = {}) => {
       throw new Error('Session expired. Please login again.');
     }
     
-    const data = await response.json();
+    const data = await response.json().catch(() => ({})); // handle non-JSON responses
     
     if (!response.ok) {
       throw new Error(data.message || 'Request failed');
