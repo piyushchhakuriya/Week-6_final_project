@@ -22,6 +22,11 @@ cloudinary.config({
 app.use(cors());
 app.use(express.json({ limit: '10mb' })); // increased for large base64 payloads
 
+//health
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Backend API is running 🚀' });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/designs', designRoutes);
